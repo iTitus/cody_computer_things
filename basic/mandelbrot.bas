@@ -37,9 +37,10 @@
 1245 REM Maximum iterations reached, i. e. did not diverge?
 1250 IF K > 15 THEN GOTO 1310
 1255 REM Value diverges?
-1260 IF X/10*X/10 + Y/10*Y/10 > 1000 THEN GOTO 1310
-1265 REM Continue iterating
-1270 GOTO 1210
+1260 IF ABS(X) > 200 THEN GOTO 1310
+1270 IF ABS(Y) > 200 THEN GOTO 1310
+1285 REM Continue iterating
+1290 GOTO 1210
 
 1300 REM Draw "pixel"
 1305 REM Draw as black if not diverged

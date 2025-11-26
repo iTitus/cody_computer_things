@@ -2,6 +2,11 @@
 
 Assorted programs and other things I wrote for the [Cody Computer](https://www.codycomputer.org/).
 
+* [Cody BASIC programs](./basic)
+* [cartridge-based assembly programs](./cartridge)
+* [documentation of the Cody Computer's memory map](./memory_map)
+* [utilities for Cody Computer development](./tools) (these do not run on the Cody Computer itself)
+
 ## Licenses
 
 See the license headers in the individual files/folders for details.

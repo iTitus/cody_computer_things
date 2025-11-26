@@ -10,5 +10,5 @@
 140 REM Force line break after C characters
 150 IF MOD(I - S, C) = C - 1 THEN PRINT
 160 NEXT
-170 REM Reset text color to black
-180 PRINT CHR$(240)
+170 REM Reset text color to white
+180 PRINT CHR$(241)

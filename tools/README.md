@@ -1,6 +1,6 @@
 # Utilities for Cody Computer development
 
-A small connection of scripts I wrote to help with developing for the Cody Computer.
+A small collection of scripts I wrote to help with developing for the Cody Computer.
 These do *not* run on the Cody Computer itself.
 
 * [cody_serial.py](./cody_serial.py): Small CLI helper script for transferring Cody BASIC and binary programs to/from a Cody Computer over a serial connection.

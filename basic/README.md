@@ -9,3 +9,6 @@ and can be loaded over serial using `LOAD 1, 0`.
 	(CODSCII characters and Cody BASIC color codes).
 * [decdump.bas](./decdump.bas): Displays a region of memory as bytes in decimal.
 * [hexdump.bas](./hexdump.bas): Displays a region of memory as bytes in hexadecimal and printable characters.
+* [mandelbrot.bas](./mandelbrot.bas): A Mandelbrot set visualization.
+* [palette_test.bas](./palette_test.bas): Tiny test program used in the development of mandelbrot.bas.
+	Displays a "color palette" that contains all of the Cody Computer's 16 colors in (rough) order of increasing brightness.

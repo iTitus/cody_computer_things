@@ -63,7 +63,7 @@ def send_basic_source(basic_stream, ser, basic_prompt_character=b"?"):
 	if basic_prompt_character is not None:
 		prompt = ser.read(1)
 		if prompt != basic_prompt_character:
-			sys.stderr.write("Received unexpected prompt character from the Cody Computer: " + repr(prompt) + "\n")
+			print(f"Received unexpected prompt character from the Cody Computer: {prompt!r}", file=sys.stderr, flush=True)
 	
 	for line in basic_stream:
 		# accept CRLF, LF and CR line endings
@@ -86,7 +86,7 @@ def send_basic_source(basic_stream, ser, basic_prompt_character=b"?"):
 		if basic_prompt_character is not None:
 			prompt = ser.read(1)
 			if prompt != basic_prompt_character:
-				sys.stderr.write("Received unexpected prompt character from the Cody Computer: " + repr(prompt) + "\n")
+				print("Received unexpected prompt character from the Cody Computer: {prompt!r}", file=sys.stderr, flush=True)
 	
 	# Signal the end of the BASIC program using an empty line.
 	ser.write(b"\n")
@@ -110,14 +110,14 @@ def main():
 	if args.action == "send":
 		if args.type is None:
 			if file_is_stream:
-				sys.stderr.write("When sending from stdin you need to pass the data type explicitly - rerun with --type=basic or --type=data.\n")
+				print("When sending from stdin you need to pass the data type explicitly - rerun with --type=basic or --type=data.", file=sys.stderr)
 				sys.exit(1)
 
 			_, ext = os.path.splitext(args.file)
 			
 			if is_asm_extension(ext):
-				sys.stderr.write("An assembly source file cannot be sent directly to the Cody Computer - assemble it first and send the assembled binary file.\n")
-				sys.stderr.write("(If you really want to send the assembly source file as text, rerun with --type=data.)\n")
+				print("An assembly source file cannot be sent directly to the Cody Computer - assemble it first and send the assembled binary file.", file=sys.stderr)
+				print("(If you really want to send the assembly source file as text, rerun with --type=data.)", file=sys.stderr)
 				sys.exit(1)
 			
 			args.type = data_type_from_file_extension(ext)
@@ -129,24 +129,21 @@ def main():
 				elif args.type == "data":
 					shutil.copyfileobj(f, ser)
 				else:
-					sys.stderr.write("Invalid data type: " + repr(args.type) + "\n")
+					print(f"Invalid data type: {args.type!r}", file=sys.stderr)
 					sys.exit(2)
 	elif args.action == "receive":
 		if os.path.exists(args.file):
-			sys.stderr.write("Output file " + repr(args.file) + " already exists. Overwrite? ")
-			sys.stderr.flush()
-			answer = sys.stdin.readline()
+			answer = input(f"Output file {args.file!r} already exists. Overwrite? ")
 			if answer.strip().lower() != "y":
 				sys.exit(1)
 		
-		sys.stderr.write("Press Ctrl+C once the file has been fully sent.\n")
-		sys.stderr.flush()
+		print("Press Ctrl+C once the file has been fully sent.", file=sys.stderr, flush=True)
 		
 		with io.open(args.file, "wb") as f:
 			with open_serial_port(args.port) as ser:
 				shutil.copyfileobj(ser, f, 1)
 	else:
-		sys.stderr.write("Invalid action: " + repr(args.action) + "\n")
+		print(f"Invalid action: {args.action!r}", file=sys.stderr)
 		sys.exit(2)
 
 if __name__ == "__main__":

@@ -1,4 +1,8 @@
+#!/usr/bin/env -S uv run --script
 # -*- coding: utf-8 -*-
+# /// script
+# dependencies = ["pyserial"]
+# ///
 
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2025 dgelessus
@@ -30,8 +34,6 @@ import sys
 
 import serial
 
-basic_prompt_character = b"?"
-
 def is_asm_extension(ext):
 	return ext.lower() in {".asm", ".ca65", ".s", ".tass"}
 
@@ -53,34 +55,42 @@ def open_serial_port(port):
 		exclusive=True,
 	)
 
-def send_basic_source(basic_stream, ser):
+def send_basic_source(basic_stream, ser, basic_prompt_character=b"?"):
 	"""Send Cody BASIC source code line by line over the given serial port."""
 	
 	print('Run "LOAD 1, 0" on the Cody Computer...')
 	
-	prompt = ser.read(1)
-	if prompt != basic_prompt_character:
-		sys.stderr.write("Received unexpected prompt character from the Cody Computer: " + repr(prompt) + "\n")
-	
-	for line in basic_stream:
-		if line == b"\n":
-			# Skip empty lines to avoid accidentally terminating the program early.
-			continue
-		
-		ser.write(line)
-		
-		# Progress indication on stdout...
-		sys.stdout.write(".")
-		sys.stdout.flush()
-		
+	if basic_prompt_character is not None:
 		prompt = ser.read(1)
 		if prompt != basic_prompt_character:
 			sys.stderr.write("Received unexpected prompt character from the Cody Computer: " + repr(prompt) + "\n")
 	
+	for line in basic_stream:
+		# accept CRLF, LF and CR line endings
+		if line.endswith(b"\r\n"):
+			line = line[:-2]
+		elif line.endswith(b"\n") or line.endswith(b"\r"):
+			line = line[:-1]
+
+		if not line:
+			# Skip empty lines to avoid accidentally terminating the program early.
+			continue
+		
+		ser.write(line)
+		ser.write(b"\n")
+		ser.flush()
+		
+		# Progress indication on stdout...
+		print(str(line, encoding="ascii", errors="replace"), flush=True)
+		
+		if basic_prompt_character is not None:
+			prompt = ser.read(1)
+			if prompt != basic_prompt_character:
+				sys.stderr.write("Received unexpected prompt character from the Cody Computer: " + repr(prompt) + "\n")
+	
 	# Signal the end of the BASIC program using an empty line.
 	ser.write(b"\n")
-	# Print newline after progress indicator.
-	print("")
+	ser.flush()
 
 def main():
 	ap = argparse.ArgumentParser(
@@ -95,9 +105,14 @@ def main():
 	ap.add_argument("file", help="The local file to send or to which to write the received data.")
 	
 	args = ap.parse_args()
-	
+
+	file_is_stream = args.file == "-"
 	if args.action == "send":
 		if args.type is None:
+			if file_is_stream:
+				sys.stderr.write("When sending from stdin you need to pass the data type explicitly - rerun with --type=basic or --type=data.\n")
+				sys.exit(1)
+
 			_, ext = os.path.splitext(args.file)
 			
 			if is_asm_extension(ext):
@@ -107,7 +122,7 @@ def main():
 			
 			args.type = data_type_from_file_extension(ext)
 		
-		with io.open(args.file, "rb") as f:
+		with sys.stdin.buffer if file_is_stream else io.open(args.file, "rb") as f:
 			with open_serial_port(args.port) as ser:
 				if args.type == "basic":
 					send_basic_source(f, ser)

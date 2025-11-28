@@ -103,7 +103,7 @@ def main():
 	ap.add_argument("-t", "--type", choices=["basic", "data"], help="The type of data to send. When sending a BASIC program, this script will wait after each line as necessary rather than sending all data at once. By default, the type is determined automatically based on the file extension.")
 	ap.add_argument("-f", "--force", action="store_true", help="Overwrite output file if it exists.")
 	ap.add_argument("action", choices=["send", "receive"], help="The communication direction.")
-	ap.add_argument("file", help="The local file to send or to which to write the received data.")
+	ap.add_argument("file", help="The local file to send or to which to write the received data, use '-' for stdin/stdout.")
 	
 	args = ap.parse_args()
 
@@ -133,14 +133,14 @@ def main():
 					print(f"Invalid data type: {args.type!r}", file=sys.stderr)
 					sys.exit(2)
 	elif args.action == "receive":
-		if not args.force and os.path.exists(args.file):
+		if not file_is_stream and not args.force and os.path.exists(args.file):
 			answer = input(f"Output file {args.file!r} already exists. Overwrite? ")
 			if answer.strip().lower() != "y":
 				sys.exit(1)
 		
 		print("Press Ctrl+C once the file has been fully sent.", file=sys.stderr, flush=True)
 		
-		with io.open(args.file, "wb") as f:
+		with sys.stdout.buffer if file_is_stream else io.open(args.file, "wb") as f:
 			with open_serial_port(args.port) as ser:
 				shutil.copyfileobj(ser, f, 1)
 	else:
